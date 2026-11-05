@@ -7,7 +7,7 @@
 %% ESCOLHA DA VERSAO:
 %% Para VERSAO DE AVALIACAO (anonima), descomente a linha abaixo e comente a final:
 %\documentclass[sigconf, nonacm, screen, anonymous, language=portuguese, language=spanish, language={main=english}]{acmart}
-%% VERSAO FINAL:
+%% VERSAO FINAL (Camera-ready):
 \documentclass[sigconf, nonacm, screen, language=portuguese, language=spanish, language={main=english}]{acmart}
 
 \AtBeginDocument{%
@@ -22,10 +22,9 @@
 \usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{url}
-\usepackage{subcaption}
 \usepackage{fontawesome5}
 
-%% Configuracao do TikZ e suas bibliotecas necessarias
+%% Configuracao do TikZ e suas bibliotecas
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds}
 
@@ -158,8 +157,11 @@ u_i &= P(\gamma_i = 1 \mid (a,b) \in U).
 
 A razão de verossimilhança associada a cada campo fornece o peso de concordância $w_i$:
 \begin{equation}
-w_i = \log_2 \left( \frac{m_i}{u_i} \right) \quad \text{se } \gamma_i = 1; \quad
-w_i = \log_2 \left( \frac{1 - m_i}{1 - u_i} \right) \quad \text{se } \gamma_i = 0.
+w_i = 
+\begin{cases}
+\log_2 \left( \dfrac{m_i}{u_i} \right), & \text{se } \gamma_i = 1, \\[8pt]
+\log_2 \left( \dfrac{1 - m_i}{1 - u_i} \right), & \text{se } \gamma_i = 0.
+\end{cases}
 \end{equation}
 
 O escore composto $W(a,b) = \sum_{i=1}^k w_i$ é comparado a dois limiares de decisão $(T_{\mu}, T_{\lambda})$. Se $W(a,b) \ge T_{\mu}$, o par é classificado como pareado ($M$); se $W(a,b) \le T_{\lambda}$, é classificado como não pareado ($U$); e valores intermediários $T_{\lambda} < W(a,b) < T_{\mu}$ demandam revisão manual (\textit{clerical review}).
@@ -167,7 +169,7 @@ O escore composto $W(a,b) = \sum_{i=1}^k w_i$ é comparado a dois limiares de de
 \subsection{Visualização Interativa e Reatividade em R}
 O framework Shiny baseia-se no paradigma reativo orientado por grafos direcionados acíclicos de dependência (\textit{Reactive DAG}). A reatividade desacopla entradas (\textit{inputs}) e saídas (\textit{outputs}), atualizando componentes gráficos apenas quando as variáveis de estado dependentes sofrem mutação, o que viabiliza escalabilidade na manipulação de bases volumosas em tempo de execução \cite{shiny2024}.
 
-A aplicação organiza-se no padrão modular de \textit{User Interface} (UI) e \textit{Server}. A UI utiliza o pacote \texttt{bs4Dash} para garantir responsividade e navegação fluida em dispositivos móveis e desktops. O componente servidor gerencia as dependências reativas dos módulos analíticos, que incluem tabelas dinâmicas (\texttt{DT} \cite{dt2024}), geoprocessamento poligonal e mapas coropléticos interativos (\texttt{leaflet} \cite{leaflet2024}) e séries temporais vetorizadas (\texttt{echarts4r} \cite{echarts4r2023}).
+A aplicação organiza-se no padrão modular de \textit{User Interface} (UI) e \textit{Server}. A UI utiliza o pacote \texttt{bs4Dash} para garantir responsividade e navegação fluida em dispositivos móveis e computadores de secretária. O componente servidor gerencia as dependências reativas dos módulos analíticos, que incluem tabelas dinâmicas (\texttt{DT} \cite{dt2024}), geoprocessamento poligonal e mapas coropléticos interativos (\texttt{leaflet} \cite{leaflet2024}) e séries temporais vetorizadas (\texttt{echarts4r} \cite{echarts4r2023}).
 
 %% =====================================================================
 %% 3. MATERIAIS E METODOS
@@ -247,7 +249,6 @@ Para assegurar disponibilidade e reprodutibilidade, adotou-se um pipeline de con
 \label{fig:deployment}
 \end{figure}
 
-\newpage
 O repositório é gerenciado via \textit{GitLab CI}, automatizando testes e registrando as imagens geradas. O cluster Kubernetes \cite{burns2016borgomega} orquestra réplicas de contêineres (\textit{Pods}) sob demanda. Para tratar a perda de estado intrínseca a conexões WebSockets sob balanceamento de carga no Shiny, configurou-se o \textit{Ingress Controller} com afinidade de sessão (\textit{sticky sessions} via \textit{cookies}). Essa infraestrutura, combinada com protocolo seguro (WSS -- \textit{WebSocket Secure}), previne encerramentos abruptos durante a geração dinâmica de relatórios em PDF.
 
 %% =====================================================================
@@ -255,95 +256,81 @@ O repositório é gerenciado via \textit{GitLab CI}, automatizando testes e regi
 %% =====================================================================
 \section{Resultados}\label{sec:resultados}
 
-O fluxo de integração de dados foi operacionalizado em quatro etapas, conforme a taxonomia apresentada na Figura \ref{fig:placeholder}. A primeira etapa, \textbf{Diagnóstico Situacional}, mapeou as instituições custodiantes e categorizou a tipologia do dado: atendimento in situ, transporte pré-hospitalar, internação clínica ou mortalidade. A segunda etapa executou a \textbf{Limpeza e Padronização}, saneando inconsistências léxicas e removendo duplicatas triviais nos atributos-chave.
+O fluxo de integração de dados foi operacionalizado em quatro etapas, conforme a taxonomia apresentada na Figura \ref{fig:placeholder}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{Tipificacao_sinistro.jpg}
+  \includegraphics[width=0.90\linewidth]{Tipificacao_sinistro.jpg}
   \caption{Mapeamento e Classificação das Fontes de Dados.}
   \label{fig:placeholder}
 \end{figure}
 
+A primeira etapa, \textbf{Diagnóstico Situacional}, mapeou as instituições custodiantes e categorizou a tipologia do dado: atendimento in situ, transporte pré-hospitalar, internação clínica ou mortalidade. A segunda etapa executou a \textbf{Limpeza e Padronização}, saneando inconsistências léxicas e removendo duplicatas triviais nos atributos-chave.
 
 A terceira etapa aplicou o \textbf{Pareamento Probabilístico} (Figura \ref{fig:LUVF1}), convergindo as bases de fiscalização policial e de necropsia forense para compor a Lista Única de Vítimas Fatais de Policiamento (LUVF1).
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{LUVF_ETAPA1.jpg}
+  \includegraphics[width=0.90\linewidth]{LUVF_ETAPA1.jpg}
   \caption{Etapa I: Integração das Bases de Policiamento e IML (LUVF1).}
   \label{fig:LUVF1}
 \end{figure}
 
-\newpage
 A base de rodovias federais (\textit{dataset1.csv} -- PRF) e a base de vias urbanas (\textit{dataset2.csv} -- Polícia Civil) foram vinculadas aos laudos periciais do IML e aos registros transcritos do BPRE. O cruzamento com os laudos do IML agregou parâmetros de alcoolemia e triagem toxicológica que não estão presentes nos boletins de atendimento viário.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{LUVF_ETAPA2.jpg}
+  \includegraphics[width=0.90\linewidth]{LUVF_ETAPA2.jpg}
   \caption{Etapas II e III: Integração das Fontes de Resgate e Saúde.}
   \label{fig:LUVF2}
 \end{figure}
 
-As Etapas 2 e 3 (Figura \ref{fig:LUVF2}) integraram os subsistemas de urgência e assistência clínica. Na Etapa 2, o pareamento dos registros do SAMU (\texttt{dataset\_samu.csv}) e Bombeiros (\texttt{dataset\_bombeiro.csv}) gerou a LUVF2, documentando a cinemática do trauma. Na Etapa 3, a convergência entre as AIH do SIH/SUS e as Declarações de Óbito (DO) consolidou a LUVF3, viabilizando a identificação de vítimas cujo óbito decorreu de complicações pós-internação.
-
-\newpage
-A convergência final das listas parciais (LUVF1, LUVF2 e LUVF3) no módulo central de linkage resultou na \textbf{Lista Única de Vítimas Fatais Geral (LUVF Geral)}, como ilustrado na Figura \ref{fig:LUVF3}. 
-
-O pareamento unificou os registros esparsos referentes ao mesmo indivíduo, eliminando a redundância institucional e integrando a trajetória clínica e pericial de cada vítima. O repositório consolidado alimenta relatórios institucionais, formatos abertos \cite{wilkinson2016} e a plataforma interativa.
+As Etapas 2 e 3 (Figura \ref{fig:LUVF2}) integraram os subsistemas de urgência e assistência clínica. Na Etapa 2, o pareamento dos registros do SAMU (\texttt{dataset\_samu.csv}) e do Corpo de Bombeiros (\texttt{dataset\_bombeiro.csv}) gerou a LUVF2, documentando a cinemática do trauma. Na Etapa 3, a convergência entre as AIH do SIH/SUS e as Declarações de Óbito (DO) consolidou a LUVF3, viabilizando a identificação de vítimas cujo óbito decorreu de complicações pós-internação.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{LUVF_ETAPA3.jpg}
+  \includegraphics[width=0.90\linewidth]{LUVF_ETAPA3.jpg}
   \caption{Etapa IV: Consolidação da LUVF Geral e Canais de Saída.}
   \label{fig:LUVF3}
 \end{figure}
 
-
- O painel desenvolvido em R/Shiny estrutura-se em módulos temáticos. A tela principal (Figura \ref{fig:aba1_dashboard}) exibe os indicadores agregados do estado, contemplando filtros dinâmicos de período, região e variáveis sociodemográficas (sexo, idade e escolaridade). A combinação do \texttt{echarts4r} e \texttt{leaflet} permite alternar de forma síncrona entre séries temporais e severidade espacial.
+A convergência final das listas parciais (LUVF1, LUVF2 e LUVF3) no módulo central de linkage resultou na \textbf{Lista Única de Vítimas Fatais Geral (LUVF Geral)}, como ilustrado na Figura \ref{fig:LUVF3}. O pareamento unificou os registros esparsos referentes ao mesmo indivíduo, eliminando a redundância institucional e integrando a trajetória clínica e pericial de cada vítima. O repositório consolidado alimenta relatórios institucionais, formatos abertos \cite{wilkinson2016} e a plataforma interativa.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{dahboard1.jpg}
+  \includegraphics[width=0.90\linewidth]{dahboard1.jpg}
   \caption{Painel Principal: Indicadores Gerais de Segurança Viária.}
   \label{fig:aba1_dashboard}
 \end{figure}
 
-\newpage
-A interface de microdados (Figura \ref{fig:aba2_microdados}) permite consultar registros desagregados com suporte a ordenação vetorial e extração em formatos estruturados.
+O painel desenvolvido em R/Shiny estrutura-se em módulos temáticos. A tela principal (Figura \ref{fig:aba1_dashboard}) exibe os indicadores agregados do estado, contemplando filtros dinâmicos de período, região e variáveis sociodemográficas (sexo, idade e escolaridade). A combinação do \texttt{echarts4r} e \texttt{leaflet} permite alternar de forma síncrona entre séries temporais e severidade espacial.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{dahboard2.jpg}
+  \includegraphics[width=0.90\linewidth]{dahboard2.jpg}
   \caption{Módulo de Microdados com Filtros e Exportação Reativa.}
   \label{fig:aba2_microdados}
 \end{figure}
 
+A interface de microdados (Figura \ref{fig:aba2_microdados}) permite consultar registros desagregados com suporte a ordenação vetorial e extração em formatos estruturados.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.90\linewidth]{dahboard3.jpg}
+  \caption{Mapeamento Geoespacial Coroplético por Divisão Regional.}
+  \label{fig:aba3_espacial}
+\end{figure}
 
 A distribuição espacial dos sinistros (Figura \ref{fig:aba3_espacial}) apresenta o comportamento territorial dos eventos via mapas coropléticos interativos, com níveis de agregação configuráveis por municípios ou Regiões de Integração.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1.0\linewidth]{dahboard3.jpg}
-  \caption{Mapeamento Geoespacial Coroplético por Divisão Regional.}
-  \label{fig:aba3_espacial}
-\end{figure}
-
-
-
-\newpage
-Por fim, o módulo analítico de indicadores (Figura \ref{fig:aba4_indicadores}) consolida as taxas de mortalidade por 100 mil habitantes, permitindo estratificar o risco global e o segmento específico de usuários vulneráveis, como os condutores de motocicletas.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1.0\linewidth]{dahboard4.jpg}
+  \includegraphics[width=0.90\linewidth]{dahboard4.jpg}
   \caption{Módulo de Indicadores Estruturados e Coeficientes de Mortalidade.}
   \label{fig:aba4_indicadores}
 \end{figure}
 
-
-
-
-
+Por fim, o módulo analítico de indicadores (Figura \ref{fig:aba4_indicadores}) consolida as taxas de mortalidade por 100 mil habitantes, permitindo estratificar o risco global e o segmento específico de usuários vulneráveis, como os condutores de motocicletas.
 
 %% =====================================================================
 %% 5. DISCUSSAO
@@ -406,7 +393,7 @@ B.~Burns, B.~Grant, D.~Oppenheimer, E.~Brewer, and J.~Wilkes. 2016.
 \newblock Borg, omega, and kubernetes.
 \newblock {\em ACM Queue} 14, 1 (2016), 70--93.
 
-\bibitem{chang2024}
+\bibitem{shiny2024}
 W.~Chang, J.~Cheng, J.~Allaire, C.~Sievert, B.~Schloerke, Y.~Xie, J.~Allen, J.~McPherson, A.~Dipert, and B.~Borges. 2024.
 \newblock {\em shiny: Web Application Framework for R}.
 \newblock R package version 1.9.1, \url{https://CRAN.R-project.org/package=shiny}.

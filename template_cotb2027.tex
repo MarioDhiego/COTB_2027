@@ -269,13 +269,6 @@ Para garantir resiliência e alta disponibilidade, implementou-se um fluxo \text
 
 O fluxo metodológico de integração de dados foi operacionalizado em quatro etapas fundamentais, sintetizadas na taxonomia da Figura \ref{fig:placeholder}.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{Tipificacao_sinistro.jpg}
-  \caption{Tipificação e Mapeamento das Fontes de Dados sobre Sinistros de Trânsito no Estado do Pará.}
-  \label{fig:placeholder}
-\end{figure}
-
 A primeira etapa correspondeu ao \textbf{Diagnóstico Situacional}, mapeando as instituições custodiantes e categorizando a natureza do registro: cena imediata, transporte pré-hospitalar, internação clínica ou vigilância de mortalidade. 
 
 A segunda etapa compreendeu a \textbf{Limpeza e Padronização}, responsável por sanar redundâncias sintáticas nos atributos comuns (nome, sexo, idade e logradouro). 
@@ -284,12 +277,40 @@ A terceira etapa consistiu na execução do \textbf{Pareamento Probabilístico} 
 
 \begin{figure}[htbp]
   \centering
+  \includegraphics[width=0.95\linewidth]{Tipificacao_sinistro.jpg}
+  \caption{Tipificação e Mapeamento das Fontes de Dados sobre Sinistros de Trânsito no Estado do Pará.}
+  \label{fig:placeholder}
+\end{figure}
+
+
+
+\subsection{Processo de Pareamento de Multiplas Bases de Dados}
+
+A Figura \ref{fig:LUVF1} apresenta a Etapa 1 do processo de integração de bases de dados sobre sinistros de trânsito no estado do Pará, cujo produto é a Lista Única de Vítimas (LUVF1). 
+
+A etapa parte das Bases de Dados (Policiamento), formada por registros de órgãos de policiamento e perícia, cada um com natureza, cobertura territorial e formato próprios. Essa heterogeneidade estrutural, semântica e de armazenamento é um dos principais desafios da integração de dados (Lenzerini, 2002; Doan; Halevy; Ives, 2012).
+
+\begin{figure}[htbp]
+  \centering
   \includegraphics[width=0.95\linewidth]{LUVF_ETAPA1.jpg}
   \caption{Etapa I: Consolidação da Base de Policiamento e Perícia Forense (LUVF1).}
   \label{fig:LUVF1}
 \end{figure}
 
-A base $dataset1.csv$ (PRF) e a base $dataset2.csv$ (Polícia Civil) foram unificadas aos dados de laudos periciais toxicológicos do IML e aos boletins digitalizados do BPRE. A incorporação dos dados do IML agregou variáveis de dosagem alcoólica e triagem toxicológica que não constam dos boletins de pista, enriquecendo o potencial investigativo das causas basais dos sinistros.
+\newpage
+A primeira fonte, banco1.csv, é do Boletim de Acidente de Trânsito (BOAT) da Polícia Rodoviária Federal (PRF) e cobre os sinistros nas rodovias federais que cortam o território paraense. 
+
+A segunda, banco2.csv, reúne os Boletins de Ocorrência (BO) da Polícia Civil. A terceira é o BOAT do Batalhão de Polícia Rodoviária Estadual (BPRE), responsável pelas rodovias estaduais, mantido em meio impresso: cada ocorrência gera um registro com dados das vítimas, do sinistro, fotografias e croqui do local e dos veículos. Seu uso exige digitalização e transcrição prévias, sujeitas a erros de entrada de dados e que demandam verificação de qualidade (Rahm; Do, 2000; Batini; Scannapieco, 2016). 
+
+
+Como as bases não compartilham um identificador único confiável, a consolidação depende de pareamento de registros (record linkage), também chamado de resolução de entidades. Uma mesma vítima pode constar em mais de uma instituição, com variações de grafia, abreviações e omissões (Fellegi; Sunter, 1969; Christen, 2012), e abordagens determinísticas tendem a perder pares verdadeiros (Christen; Goiser, 2007). 
+
+Por isso, o pareamento, aplicado a todas as etapas do processo, foi implementado em linguagem $R_{4.5}$, com fundamentação metodológica em Peng e Mation (2018). Esses autores sistematizam os métodos probabilísticos baseados no modelo de Fellegi e Sunter (1969), os critérios de blocagem (blocking), as funções de distanciamento de strings e a codificação fonética para o português brasileiro. Eles também comparam desempenho preditivo e custo computacional por meio de precisão, sensitividade e F1 score. A combinação de fontes policiais e periciais busca ainda mitigar o sub-registro, problema recorrente nas estatísticas de sinistros (Elvik; Vaa, 2004; WHO, 2018).
+
+A quarta fonte é composta pelos laudos cadavéricos do Instituto Médico Legal (IML), restritos a vítimas fatais, que trazem o teor de alcoolemia e a dosagem de outras substâncias, informações raras nos demais registros. A figura prevê ainda os boletins dos departamentos municipais de trânsito (DEMUTRANs), cujos dados, até o momento, não são repassados pelo município. A LUVF1 resulta, portanto, apenas das fontes estaduais e federais disponíveis, o que limita a cobertura de sinistros em vias urbanas municipais. 
+
+\newpage
+A Figura \ref{fig:LUVF2} reúne as duas etapas que ampliam a LUVF com fontes externas ao policiamento. Elas seguem o mesmo procedimento de pareamento já descrito. O objetivo é captar vítimas fatais que os registros policiais não contemplam, seja porque a polícia não foi acionada, seja porque o óbito ocorreu após o atendimento inicial. Fontes de saúde e de segurança pública cobrem eventos distintos do mesmo fenômeno, e sua articulação é recomendada para reduzir o sub-registro (WHO, 2018).
 
 \begin{figure}[htbp]
   \centering
@@ -298,18 +319,27 @@ A base $dataset1.csv$ (PRF) e a base $dataset2.csv$ (Polícia Civil) foram unifi
   \label{fig:LUVF2}
 \end{figure}
 
-Conforme apresentado na Figura \ref{fig:LUVF2}, as Etapas 2 e 3 expandiram a consolidação para o escopo assistencial. Na Etapa 2, o pareamento dos atendimentos do SAMU (\texttt{dataset\_samu.csv}) e do Corpo de Bombeiros (\texttt{dataset\_bombeiro.csv}) gerou a LUVF2, documentando parâmetros de trauma e encaminhamento. Na Etapa 3, a convergência das AIH do SIH/SUS com as Declarações de Óbito (DO) da SESMA e da SESPA estruturou a LUVF3, viabilizando o monitoramento do óbito decorrente do trauma mesmo após dias de internação.
+
+Durante a Etapa 2 (Figura \ref{fig:LUVF2}) parte da Base de Resgate, composta pelos BOAT do Serviço de Atendimento Móvel de Urgência (SAMU) e do Corpo de Bombeiros, que registram o atendimento no local do sinistro. Sua consolidação gera a LUVF2. A Etapa 3 parte da Base de Saúde, que reúne a Autorização de Internação Hospitalar (AIH) do Hospital Metropolitano de Urgência e Emergência (HMUE) e as Declarações de Óbito (DO) da Secretaria Municipal de Saúde (SESMA) e da Secretaria de Estado de Saúde Pública (SESPA). 
+
+Sua consolidação gera a LUVF3. Enquanto os registros de resgate documentam o momento do atendimento, os registros hospitalares e de óbito acompanham o desfecho da vítima, o que permite identificar mortes posteriores ao sinistro. Em ambas as etapas, cada instituição fornece registros independentes que convergem para sua respectiva lista .
+
+
+A Figura \ref{fig:LUVF3} apresenta a etapa final, em que as listas parciais LUVF1, LUVF2 e LUVF3 convergem para o módulo de \textit{linkage}. Nele, as listas são pareadas entre si e as duplicidades são eliminadas, de modo que cada vítima conste uma única vez, com os atributos complementares de todas as fontes. O resultado é a Lista Única de Vítimas Total (LUVF Geral), base consolidada de referência do processo.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.95\linewidth]{LUVF_ETAPA3.jpg}
+  \includegraphics[width=1.0\linewidth]{LUVF_ETAPA3.jpg}
   \caption{Etapa IV: Síntese pelo Módulo de Linkage Central, Formação da LUVF Geral e Camadas de Saída.}
   \label{fig:LUVF3}
 \end{figure}
 
-A convergência hierárquica das listas parciais (LUVF1, LUVF2 e LUVF3) no módulo central de linkage culminou na \textbf{Lista Única de Vítimas Fatais Geral (LUVF Geral)}, como ilustrado na Figura \ref{fig:LUVF3}. O relacionamento identificou indivíduos registrados em múltiplos sistemas (ex.: atendimento pré-hospitalar, boletim e declaração de óbito), expurgando duplicidades e gerando uma visão transetorial da vítima. 
 
-A base unificada alimenta múltiplos canais de saída em conformidade com as premissas de dados abertos e reprodutíveis \cite{wilkinson2016}, destacando-se relatórios corporativos, arquivos tabulares e a plataforma analítica interativa.
+\newpage
+De acordo com a figura \ref{fig:LUVF3} mostra seis saídas: a base de dados em formatos abertos e tabulares (.xls, .csv e .txt), relatórios, arquivos PDF, mapas, links e um dashboard. A disponibilização em formatos abertos favorece o reuso e a reprodutibilidade (Wilkinson et al., 2016). Relatórios e PDF atendem à comunicação técnica e institucional. Mapas permitem a análise espacial dos sinistros. O dashboard oferece acompanhamento visual e interativo de indicadores (Few, 2013). A LUVF Geral é, assim, ao mesmo tempo produto analítico e base para a gestão da segurança viária.
+
+
+\subsection{Desenvolvimento de Dashboard}
 
 \begin{figure}[htbp]
   \centering
@@ -338,7 +368,7 @@ A aba de distribuição espacial \ref{fig:aba3_microdados} foi construída de mo
   \label{fig:aba3_microdados}
 \end{figure}
 
-\newpage
+
 O último item do menu é referente aos indicadores, detalhando sobre as principais taxas de mortalidade por sinistros de trânsito. A figura  ilustra as taxas de mortalidade por 100 mil habitantes na condição geral e motociclista.
 
 
